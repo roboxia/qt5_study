@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <script src="test.js"></script>
+        <script>
+            function testJsSend(){
+                    var input = document.getElementById("input");
+                    var text = input.value;
+                    if (!text) {
+                        return;
+                    }
+                    var output = document.getElementById("output");
+                    output.innerHTML = output.innerHTML + "Sent message: " + text + "\n";
+                    jsWriteReg("0x20000000",text);  //调用Qt的函数,接收数据
+            }
+            //定义函数
+            function jsReceive(message) {  //sendtext是一个信号,使用connect链接到一个函数
+                console.log(message);
+                
+                // return message; //将数据返回
+            }
+
+            window.onload=function(){
+                receiveQtValue(jsReceive);
+            }
+        </script>
+        <style type="text/css">
+            html {
+                height: 100%;
+                width: 100%;
+            }
+            #input {
+                width: 400px;
+                margin: 0 10px 0 0;
+            }
+            #send {
+                width: 90px;
+                margin: 0;
+            }
+            #button {
+                width: 90px;
+                margin: 0;
+            }
+            #output {
+                width: 500px;
+                height: 300px;
+            }
+        </style>
+    </head>
+    <body>
+        <textarea id="output"></textarea><br />
+        <input id="input" />
+        <input type="submit" id="send" value="Send" onclick="testJsSend();" /><br />
+        <button type="button" onclick="jlinkConnect();">jlinkConnect</button><br />
+        <button type="button" onclick="jsReadReg('0x20000000');">Read</button><br />
+        <button type="button" onclick="connectServerApp(12345);">连接到Server</button><br />
+        <button type="button" onclick="exitServerApp();">exitServerApp</button><br />
+    </body>
+</html>

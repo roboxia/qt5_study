@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <script type="text/javascript" src="./qwebchannel.js"></script>  <!--调用qwebchannel类-->
+        <script type="text/javascript">
+            //BEGIN SETUP
+            function output(message) {  //一个显示字符的函数
+                var output = document.getElementById("output");
+                output.innerHTML = output.innerHTML + message + "\n";
+            }
+            window.onload = function() { 
+                if (location.search != "") //获取当前url的查询部分.如果不为空进行搜索.应该是用于自动搜索端口
+                    var baseUrl = (/[?&]webChannelBaseUrl=([A-Za-z0-9\-:/\.]+)/.exec(location.search)[1]); 
+                else
+                    var baseUrl = "ws://localhost:12345";//如果不搜索,就直接使用指定端口
+
+                output("Connecting to WebSocket server at " + baseUrl + "."); //输出信息
+                var socket = new WebSocket(baseUrl); //创建socket
+
+                socket.onclose = function() {   
+                    console.error("web channel closed");
+                };
+                socket.onerror = function(error) {
+                    console.error("web channel error: " + error);
+                }; 
+                socket.onopen = function() {
+                    output("WebSocket connected, setting up QWebChannel.");
+                    new QWebChannel(socket, function(channel) {  //创建一个 QWebChannel,输入socket
+                        // make core object accessible globally
+                        window.core = channel.objects.core;   //获取channel的对象
+
+                        document.getElementById("send").onclick = function() {
+                            var input = document.getElementById("input");
+                            var text = input.value;
+                            if (!text) {
+                                return;
+                            }
+
+                            output("Sent message: " + text);
+                            input.value = "";
+                            core.receiveText(text);  //调用Qt的函数,接收数据
+                        }
+
+                        core.sendText.connect(function(message) {  //sendtext是一个信号,使用connect链接到一个函数
+                            output("Received message: " + message);
+                        });
+
+                        core.receiveText("Client connected, ready to send/receive messages!");
+                        output("Connected to WebChannel, ready to send/receive messages!");
+                    });
+                }
+            }
+            //END SETUP
+        </script>
+        <style type="text/css">
+            html {
+                height: 100%;
+                width: 100%;
+            }
+            #input {
+                width: 400px;
+                margin: 0 10px 0 0;
+            }
+            #send {
+                width: 90px;
+                margin: 0;
+            }
+            #output {
+                width: 500px;
+                height: 300px;
+            }
+        </style>
+    </head>
+    <body>
+        <textarea id="output"></textarea><br />
+        <input id="input" /><input type="submit" id="send" value="Send" onclick="javascript:click();" />
+    </body>
+</html>
