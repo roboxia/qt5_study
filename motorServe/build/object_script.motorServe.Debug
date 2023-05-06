@@ -1,0 +1,12 @@
+INPUT(
+./debug\main.o
+./debug\widget.o
+./debug\jlinkapi.o
+./debug\websocketclientwrapper.o
+./debug\websockettransport.o
+./debug\jsapi.o
+./debug\moc_widget.o
+./debug\moc_websocketclientwrapper.o
+./debug\moc_websockettransport.o
+./debug\moc_jsapi.o
+);

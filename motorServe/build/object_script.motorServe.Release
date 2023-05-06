@@ -1,0 +1,12 @@
+INPUT(
+./release\main.o
+./release\widget.o
+./release\jlinkapi.o
+./release\websocketclientwrapper.o
+./release\websockettransport.o
+./release\jsapi.o
+./release\moc_widget.o
+./release\moc_websocketclientwrapper.o
+./release\moc_websockettransport.o
+./release\moc_jsapi.o
+);
