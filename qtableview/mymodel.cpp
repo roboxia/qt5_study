@@ -12,10 +12,13 @@ MyModel::MyModel(QObject *parent)
 QVariant MyModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
     // FIXME: Implement me!
+    //校验section是否在范围
     if(orientation == Qt::Orientation::Vertical && role == Qt::DisplayRole ){
-        return m_vHeaderData[section];
+        if(section < m_vHeaderData.size())
+            return m_vHeaderData[section];
     }else if(orientation == Qt::Orientation::Horizontal && role == Qt::DisplayRole){
-        return m_hHeaderData[section];
+        if(section < m_hHeaderData.size())
+            return m_hHeaderData[section];
     }
     return QVariant();
 }
@@ -23,32 +26,35 @@ QVariant MyModel::headerData(int section, Qt::Orientation orientation, int role)
 
 int MyModel::rowCount(const QModelIndex &parent) const
 {
-    if (!parent.isValid())
-        return 0;
-
     // FIXME: Implement me!
-    return m_row;
+    Q_UNUSED(parent);
+    return m_vHeaderData.size();
 }
 
 int MyModel::columnCount(const QModelIndex &parent) const
 {
-    if (!parent.isValid())
-        return 0;
+
 
     // FIXME: Implement me!
-    return m_column;
+    Q_UNUSED(parent);
+    return m_hHeaderData.size();
 }
 
 QVariant MyModel::data(const QModelIndex &index, int role) const
 {
     if (!index.isValid())
         return QVariant();
-    if(index.row() >= m_row || index.column() >= m_column)
+
+    if(m_myModelData.isEmpty())
+        return QVariant();
+
+    //校验index是否正常
+    if(index.row() >= m_myModelData.size() || index.column() >= m_myModelData[0].size())
         return QVariant();
 
     // FIXME: Implement me!
-    if(role == Qt::DisplayRole){
-        MyModelData_t data = m_myModelData[index.row()][index.column()];
+    if(role == Qt::DisplayRole || role == Qt::EditRole){
+        QString data = m_myModelData[index.row()][index.column()];
         return QVariant::fromValue(data);
     }
 
@@ -68,12 +74,17 @@ bool MyModel::setData(const QModelIndex &index, const QVariant &value, int role)
     if(!index.isValid()){
         return false;
     }
+    if(m_myModelData.isEmpty()){
+        return false;
+    }
+
+    if(index.row() >= m_myModelData.size() || index.column() >= m_myModelData[0].size())
+        return false;
+
     if(role == Qt::EditRole){
-        if(index.row() < m_row && index.column() < m_column){
-            m_myModelData[index.row()][index.column()] = value.value<MyModelData_t>();
-            emit dataChanged(index,index);
-            return true;
-        }
+        m_myModelData[index.row()][index.column()] = value.toString();
+        emit dataChanged(index,index);
+        return true;
     }
     return false;
 }
@@ -82,11 +93,13 @@ bool MyModel::setHeaderData(int section, Qt::Orientation orientation, const QVar
 {
     if(role == Qt::EditRole){
         if(orientation == Qt::Orientation::Vertical){
-            if(section < m_row)
-                m_vHeaderData[section] = value.toString();
+            if(section >= m_vHeaderData.size())
+                return false;
+            m_vHeaderData[section] = value.toString();
         }else if(orientation == Qt::Orientation::Horizontal){
-            if(section < m_column)
-                m_hHeaderData[section] = value.toString();
+            if(section >= m_hHeaderData.size())
+                return false;
+            m_hHeaderData[section] = value.toString();
         }
         emit headerDataChanged(orientation,section,section);
         return true;
@@ -96,66 +109,61 @@ bool MyModel::setHeaderData(int section, Qt::Orientation orientation, const QVar
 
 bool MyModel::insertRows(int row, int count, const QModelIndex &parent)
 {
+    Q_UNUSED(parent);
     beginInsertRows(QModelIndex(),row,row+count-1);
     for(int i = 0; i < count; i++){
-        QVector<MyModelData_t> data;
+        QVector<QString> data;
         for(int j = 0; j < m_column; j++){
-            MyModelData_t temp;
-            temp.index = 0;
-            temp.name = "";
-            temp.myParent = QModelIndex();
-            temp.myChild = QModelIndex();
-            temp.row = i;
-            temp.column = j;
+            QString temp = "";
             data.push_back(temp);
         }
         m_myModelData.insert(row,data);
     }
-    m_row += count;
+    for(int i = row; i < count + row; i++){
+        m_vHeaderData.insert(i,QString("row"));
+    }
     endInsertRows();
     return true;
 }
 
 bool MyModel::insertColumns(int column, int count, const QModelIndex &parent)
 {
+    Q_UNUSED(parent);
     beginInsertColumns(QModelIndex(),column,column+count-1);
     for(int i = 0; i < m_row; i++){
-        for(int j = 0; j < count; j++){
-            MyModelData_t temp;
-            temp.index = 0;
-            temp.name = "";
-            temp.myParent = QModelIndex();
-            temp.myChild = QModelIndex();
-            temp.row = i;
-            temp.column = column + j;
-            m_myModelData[i].insert(column + j,temp);
+        for(int j = column; j < count + column; ++j){
+            m_myModelData[i].insert(j,"");
         }
     }
-    m_column += count;
+    for(int i = column; i < count + column; i++){
+        m_hHeaderData.insert(i,QString("column"));
+    }
     endInsertColumns();
     return true;
 }
 
 bool MyModel::removeRows(int row, int count, const QModelIndex &parent)
 {
+    Q_UNUSED(parent);
     beginRemoveRows(QModelIndex(),row,row+count-1);
     for(int i = 0; i < count; i++){
         m_myModelData.remove(row); //remove 之后row会自动减一, 所以每次都remove row即可
+        m_vHeaderData.removeAt(row);
     }
-    m_row -= count;
     endRemoveRows();
     return true;
 }
 
 bool MyModel::removeColumns(int column, int count, const QModelIndex &parent)
 {
+    Q_UNUSED(parent);
     beginRemoveColumns(QModelIndex(),column,column+count-1);
     for(int i = 0; i < m_row; i++){
         for(int j = 0; j < count; j++){
             m_myModelData[i].remove(column);
+            m_hHeaderData.removeAt(column);
         }
     }
-    m_column -= count;
     endRemoveColumns();
     return true;
 }

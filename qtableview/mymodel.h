@@ -60,7 +60,7 @@ private:
     QStringList m_vHeaderData;
     QStringList m_hHeaderData;
 
-    QVector<QVector<MyModelData_t>>  m_myModelData; //row<column> data
+    QVector<QVector<QString>>  m_myModelData; //row<column> data
     int m_row;
     int m_column;
 };
