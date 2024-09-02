@@ -17,6 +17,8 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+public slots:
+    void onHeaderDoubleClicked(int logicalIndex);
 private:
     Ui::MainWindow *ui;
 };
