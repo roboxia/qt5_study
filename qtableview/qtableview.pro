@@ -10,10 +10,14 @@ CONFIG += c++17
 
 SOURCES += \
     main.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    mydelegate.cpp \
+    mymodel.cpp
 
 HEADERS += \
-    mainwindow.h
+    mainwindow.h \
+    mydelegate.h \
+    mymodel.h
 
 FORMS += \
     mainwindow.ui
