@@ -2,8 +2,6 @@
 
 MyModel::MyModel(QObject *parent)
     : QAbstractTableModel(parent)
-, m_row(0)
-, m_column(0)
 {
     qRegisterMetaType<MyModelData_t>("MyModelData_t");
 }
@@ -111,6 +109,7 @@ bool MyModel::insertRows(int row, int count, const QModelIndex &parent)
 {
     Q_UNUSED(parent);
     beginInsertRows(QModelIndex(),row,row+count-1);
+    int m_column = m_hHeaderData.size();
     for(int i = 0; i < count; i++){
         QVector<QString> data;
         for(int j = 0; j < m_column; j++){
@@ -130,6 +129,7 @@ bool MyModel::insertColumns(int column, int count, const QModelIndex &parent)
 {
     Q_UNUSED(parent);
     beginInsertColumns(QModelIndex(),column,column+count-1);
+    int m_row = m_vHeaderData.size();
     for(int i = 0; i < m_row; i++){
         for(int j = column; j < count + column; ++j){
             m_myModelData[i].insert(j,"");
@@ -158,6 +158,7 @@ bool MyModel::removeColumns(int column, int count, const QModelIndex &parent)
 {
     Q_UNUSED(parent);
     beginRemoveColumns(QModelIndex(),column,column+count-1);
+    int m_row = m_vHeaderData.size();
     for(int i = 0; i < m_row; i++){
         for(int j = 0; j < count; j++){
             m_myModelData[i].remove(column);

@@ -61,8 +61,6 @@ private:
     QStringList m_hHeaderData;
 
     QVector<QVector<QString>>  m_myModelData; //row<column> data
-    int m_row;
-    int m_column;
 };
 
 

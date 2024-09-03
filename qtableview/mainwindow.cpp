@@ -23,7 +23,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     ui->tableView->setModel(model);
     ui->tableView->setItemDelegateForColumn(0,delegate);
-    ui->tableView.setI
+    ui->tableView->setItemDelegateForColumn(1,delegate);
 
     QHeaderView *header = ui->tableView->verticalHeader();
     connect(header,&QHeaderView::sectionDoubleClicked,this,&MainWindow::onHeaderDoubleClicked);
