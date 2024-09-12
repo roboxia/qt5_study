@@ -27,6 +27,9 @@ MainWindow::MainWindow(QWidget *parent)
 
     QHeaderView *header = ui->tableView->verticalHeader();
     connect(header,&QHeaderView::sectionDoubleClicked,this,&MainWindow::onHeaderDoubleClicked);
+
+    connect(ui->tableView,&QTableView::clicked,this,&MainWindow::onTableViewClicked);
+
 }
 
 MainWindow::~MainWindow()
@@ -45,4 +48,9 @@ void MainWindow::onHeaderDoubleClicked(int logicalIndex)
         ui->tableView->hideRow(logicalIndex + 1);
     else
         ui->tableView->showRow(logicalIndex + 1);
+}
+
+void MainWindow::onTableViewClicked(const QModelIndex &index)
+{
+    qDebug()<<index.data();
 }

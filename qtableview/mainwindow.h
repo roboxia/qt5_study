@@ -19,6 +19,7 @@ public:
 
 public slots:
     void onHeaderDoubleClicked(int logicalIndex);
+    void onTableViewClicked(const QModelIndex &index);
 private:
     Ui::MainWindow *ui;
 };
