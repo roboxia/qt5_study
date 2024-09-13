@@ -2,7 +2,7 @@
 #define GENERALTREEMODEL_H
 
 #include <QAbstractItemModel>
-#include "tableitem.h"
+#include "rowitem.h"
 
 //根节点是一个不可见节点, 用于管理所有的节点 ,和QStandardItemModel的根节点一样
 //所有操作过程中使用parent的函数, 如果parent = QModelIndex() 则表示是根节点
@@ -45,7 +45,7 @@ public:
     bool removeRows(int row, int count, const QModelIndex &parent = QModelIndex()) override;
     bool removeColumns(int column, int count, const QModelIndex &parent = QModelIndex()) override;
 
-    TableRowItem *rootItem() const;
+    RowItem *rootItem() const;
 
     //append
     //remove一行
@@ -53,11 +53,16 @@ public:
 
     //不构造index获取数据. 直接通过行号
     //快速指定父列设置数据...
+    RowItem *insertRow(int row,const QModelIndex &parent = QModelIndex());
+    void removeRow(int row,const QModelIndex &parent = QModelIndex());
+    void appendRow(const QModelIndex &parent = QModelIndex());
+
+    RowItem *item(int row,int column,const QModelIndex &parent = QModelIndex());
 
 
 
 private:
-    TableRowItem *m_rootItem;
+    RowItem *m_rootItem;
     QStringList m_horizontalHeaders;
     QStringList m_verticalHeaders;
 };

@@ -3,7 +3,7 @@
 GeneralTreeModel::GeneralTreeModel(QObject *parent)
     : QAbstractItemModel(parent)
 {
-    m_rootItem = new TableRowItem(nullptr,-1);
+    m_rootItem = new RowItem(nullptr,-1);
 }
 
 QVariant GeneralTreeModel::headerData(int section, Qt::Orientation orientation, int role) const
@@ -63,13 +63,13 @@ QModelIndex GeneralTreeModel::index(int row, int column, const QModelIndex &pare
 {
     // FIXME: Implement me!
     if(parent.isValid()){
-        TableRowItem* parentItem = static_cast<TableRowItem*>(parent.internalPointer());
-        TableRowItem* childItem = parentItem->childItem(row);
+        RowItem* parentItem = static_cast<RowItem*>(parent.internalPointer());
+        RowItem* childItem = parentItem->childItem(row);
         if(childItem){
             return createIndex(row,column,childItem);
         }
     }else{//根节点
-        TableRowItem* childItem = m_rootItem->childItem(row);
+        RowItem* childItem = m_rootItem->childItem(row);
         if(childItem){
             return createIndex(row,column,childItem);
         }
@@ -82,8 +82,8 @@ QModelIndex GeneralTreeModel::parent(const QModelIndex &index) const
 {
     // FIXME: Implement me!
     if(index.isValid()){
-        TableRowItem* childItem = static_cast<TableRowItem*>(index.internalPointer());
-        TableRowItem* parentItem = childItem->parentItem();
+        RowItem* childItem = static_cast<RowItem*>(index.internalPointer());
+        RowItem* parentItem = childItem->parentItem();
         if(parentItem){
             return createIndex(parentItem->childItemIndex(childItem),0,parentItem);
         }
@@ -97,7 +97,7 @@ int GeneralTreeModel::rowCount(const QModelIndex &parent) const
         return m_rootItem->childCountCount();
     }
     // FIXME: Implement me!
-    return static_cast<TableRowItem*>(parent.internalPointer())->childCountCount();
+    return static_cast<RowItem*>(parent.internalPointer())->childCountCount();
 }
 
 int GeneralTreeModel::columnCount(const QModelIndex &parent) const
@@ -106,7 +106,7 @@ int GeneralTreeModel::columnCount(const QModelIndex &parent) const
         return m_rootItem->columnCount();
     }
     // FIXME: Implement me!
-    return static_cast<TableRowItem*>(parent.internalPointer())->columnCount();
+    return static_cast<RowItem*>(parent.internalPointer())->columnCount();
 }
 
 QVariant GeneralTreeModel::data(const QModelIndex &index, int role) const
@@ -115,7 +115,7 @@ QVariant GeneralTreeModel::data(const QModelIndex &index, int role) const
         return QVariant();
 
     // FIXME: Implement me!
-    TableRowItem* item = static_cast<TableRowItem*>(index.internalPointer());
+    RowItem* item = static_cast<RowItem*>(index.internalPointer());
     return item->data(index.column(),role);
 }
 
@@ -127,7 +127,7 @@ bool GeneralTreeModel::setData(const QModelIndex &index, const QVariant &value, 
     if (data(index, role) != value) {
         // FIXME: Implement me!
         bool res = false;
-        TableRowItem* item = static_cast<TableRowItem*>(index.internalPointer());
+        RowItem* item = static_cast<RowItem*>(index.internalPointer());
         res = item->setData(index.column(),value,role);
         if(res ){
             emit dataChanged(index, index, {role});
@@ -141,7 +141,7 @@ Qt::ItemFlags GeneralTreeModel::flags(const QModelIndex &index) const
 {
     if (!index.isValid())
         return Qt::NoItemFlags;
-    TableRowItem* item = static_cast<TableRowItem*>(index.internalPointer());
+    RowItem* item = static_cast<RowItem*>(index.internalPointer());
     if(item->checkable(index.column())){
         return QAbstractItemModel::flags(index) | Qt::ItemIsEditable | Qt::ItemIsUserCheckable; // FIXME: Implement me!
     }
@@ -156,14 +156,14 @@ bool GeneralTreeModel::insertRows(int row, int count, const QModelIndex &parent)
     beginInsertRows(parent, row, row + count - 1);
     // FIXME: Implement me!
     if(parent.isValid()){
-        TableRowItem* parentItem = static_cast<TableRowItem*>(parent.internalPointer());
+        RowItem* parentItem = static_cast<RowItem*>(parent.internalPointer());
         for(int i = 0;i<count;++i){
             //构造函数自动添加到父级中.
-            new TableRowItem(parentItem,row);
+            new RowItem(parentItem,row);
         }
     }else{
         for(int i = 0;i<count;++i){
-            new TableRowItem(m_rootItem,row);
+            new RowItem(m_rootItem,row);
         }
     }
     endInsertRows();
@@ -183,14 +183,14 @@ bool GeneralTreeModel::removeRows(int row, int count, const QModelIndex &parent)
 {
     beginRemoveRows(parent, row, row + count - 1);
     // FIXME: Implement me!
-    TableRowItem* parentItem = nullptr;
+    RowItem* parentItem = nullptr;
     if(parent.isValid()){
-        parentItem = static_cast<TableRowItem*>(parent.internalPointer());
+        parentItem = static_cast<RowItem*>(parent.internalPointer());
     }else{
         parentItem = m_rootItem;
     }
     for(int i = 0;i<count;++i){
-        TableRowItem* childItem = parentItem->takeChildItem(row);
+        RowItem* childItem = parentItem->takeChildItem(row);
         if(childItem){
             delete childItem;
         }
@@ -208,8 +208,29 @@ bool GeneralTreeModel::removeColumns(int column, int count, const QModelIndex &p
     return true;
 }
 
-TableRowItem *GeneralTreeModel::rootItem() const
+RowItem *GeneralTreeModel::rootItem() const
 {
     return m_rootItem;
+}
+
+RowItem *GeneralTreeModel::insertRow(int row, const QModelIndex &parent)
+{
+    insertRows(row,1,parent);
+    return static_cast<RowItem*>(index(row,0,parent).internalPointer());
+}
+
+void GeneralTreeModel::removeRow(int row, const QModelIndex &parent)
+{
+    removeRows(row,1,parent);
+}
+
+void GeneralTreeModel::appendRow(const QModelIndex &parent)
+{
+    insertRows(rowCount(parent),1,parent);
+}
+
+RowItem *GeneralTreeModel::item(int row, int column, const QModelIndex &parent)
+{
+    return static_cast<RowItem*>(index(row,column,parent).internalPointer());
 }
 

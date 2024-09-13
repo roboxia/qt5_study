@@ -1,7 +1,7 @@
-#include "tableitem.h"
+#include "rowitem.h"
 #include <QDebug>
 
-TableRowItem::TableRowItem(TableRowItem *parentItem, TableRowItem *indexItem)
+RowItem::RowItem(RowItem *parentItem, RowItem *indexItem)
     :m_parentItem(parentItem)
     ,m_level{0}
     ,m_columnCount{0}
@@ -18,12 +18,12 @@ TableRowItem::TableRowItem(TableRowItem *parentItem, TableRowItem *indexItem)
     }
 
     //计算层级
-    for(TableRowItem *item = parentItem;item != nullptr;item = item->parentItem()){
+    for(RowItem *item = parentItem;item != nullptr;item = item->parentItem()){
         ++m_level;
     }
 }
 
-TableRowItem::TableRowItem(TableRowItem *parentItem, int index)
+RowItem::RowItem(RowItem *parentItem, int index)
 : m_parentItem(parentItem)
     ,m_level{0}
     ,m_columnCount{0}
@@ -34,7 +34,7 @@ TableRowItem::TableRowItem(TableRowItem *parentItem, int index)
     }
 
     //计算层级
-    for(TableRowItem *item = parentItem;item != nullptr;item = item->parentItem()){
+    for(RowItem *item = parentItem;item != nullptr;item = item->parentItem()){
         ++m_level;
     }
 }
@@ -42,7 +42,7 @@ TableRowItem::TableRowItem(TableRowItem *parentItem, int index)
 
 //删除自身的时候, 从parent中删除自己
 //删除自身的时候需要处理好上下关系就行.
-TableRowItem::~TableRowItem()
+RowItem::~RowItem()
 {
     int count = m_childItem.size();
     for(int i = 0;i<count;++i){
@@ -55,7 +55,7 @@ TableRowItem::~TableRowItem()
     }
 }
 
-void TableRowItem::insertColumns(int column, int count)
+void RowItem::insertColumns(int column, int count)
 {
     if(count <= 0 ){
         return;
@@ -79,7 +79,7 @@ void TableRowItem::insertColumns(int column, int count)
     }
 }
 
-void TableRowItem::removeColumns(int column, int count)
+void RowItem::removeColumns(int column, int count)
 {
     if(count <= 0 || column >= m_columnCount){
         return;
@@ -102,7 +102,7 @@ void TableRowItem::removeColumns(int column, int count)
     }
 }
 
-bool TableRowItem::setData(int column, const QVariant &value, int role)
+bool RowItem::setData(int column, const QVariant &value, int role)
 {
     if(column >= m_columnCount){
         return false;
@@ -126,7 +126,7 @@ bool TableRowItem::setData(int column, const QVariant &value, int role)
     return true;
 }
 
-QVariant TableRowItem::data(int column, int role) const
+QVariant RowItem::data(int column, int role) const
 {
     if(column >= m_columnCount){
         return QVariant();
@@ -142,17 +142,17 @@ QVariant TableRowItem::data(int column, int role) const
 
 
 
-TableRowItem* TableRowItem::parentItem() const
+RowItem* RowItem::parentItem() const
 {
     return m_parentItem;
 }
 
-QVector<TableRowItem*> TableRowItem::childItems() const
+QVector<RowItem*> RowItem::childItems() const
 {
     return m_childItem;
 }
 
-TableRowItem *TableRowItem::childItem(int index) const
+RowItem *RowItem::childItem(int index) const
 {
     if(index >= m_childItem.size() || index < 0){
         return nullptr;
@@ -160,7 +160,7 @@ TableRowItem *TableRowItem::childItem(int index) const
     return m_childItem[index];
 }
 
-int TableRowItem::childItemIndex(TableRowItem *childItem) const
+int RowItem::childItemIndex(RowItem *childItem) const
 {
     for(int i = 0;i < m_childItem.size();++i){
         if(m_childItem[i] == childItem){
@@ -170,17 +170,17 @@ int TableRowItem::childItemIndex(TableRowItem *childItem) const
     return -11;
 }
 
-TableRowItem* TableRowItem::takeChildItem(int index)
+RowItem* RowItem::takeChildItem(int index)
 {
     if(index >= m_childItem.size() || index < 0){
         return nullptr;
     }
-    TableRowItem *item = m_childItem[index];
+    RowItem *item = m_childItem[index];
     m_childItem.remove(index);
     return item;
 }
 
-int TableRowItem::takeChildItem(TableRowItem *childItem)
+int RowItem::takeChildItem(RowItem *childItem)
 {
     for(int i = 0;i < m_childItem.size();++i){
         if(m_childItem[i] == childItem){
@@ -191,7 +191,7 @@ int TableRowItem::takeChildItem(TableRowItem *childItem)
     return -11;
 }
 
-bool TableRowItem::insertChildItem(int index, TableRowItem *item)
+bool RowItem::insertChildItem(int index, RowItem *item)
 {
     if(index < 0){
         index = 0;
@@ -208,7 +208,7 @@ bool TableRowItem::insertChildItem(int index, TableRowItem *item)
 }
 
 
-void TableRowItem::deleteSelf()
+void RowItem::deleteSelf()
 {
     if(m_parentItem){
         m_parentItem->takeChildItem(this);
@@ -217,22 +217,22 @@ void TableRowItem::deleteSelf()
     delete this;
 }
 
-void TableRowItem::deleteChildItem(int index)
+void RowItem::deleteChildItem(int index)
 {
     if(index >= m_childItem.size() || index < 0){
         return;
     }
-    TableRowItem *item = m_childItem[index];
+    RowItem *item = m_childItem[index];
     item->deleteSelf();
 }
 
 
-int TableRowItem::childCount()
+int RowItem::childCount()
 {
     return m_childItem.size();
 }
 
-int TableRowItem::childCountCount()
+int RowItem::childCountCount()
 {
     int count = m_childItem.size();
     for(int i = 0;i < m_childItem.size();++i){
@@ -241,7 +241,7 @@ int TableRowItem::childCountCount()
     return count;
 }
 
-int TableRowItem::index()
+int RowItem::index()
 {
     if(m_parentItem){
         return m_parentItem->childItemIndex(this);
@@ -249,29 +249,29 @@ int TableRowItem::index()
     return -1;
 }
 
-void TableRowItem::setCheckable(int column, bool checkable)
+void RowItem::setCheckable(int column, bool checkable)
 {
     setData(column,checkable,CheckEnableRole);
 }
 
-bool TableRowItem::checkable(int column) const
+bool RowItem::checkable(int column) const
 {
     QVariant var =  data(column,CheckEnableRole);
     return var.toBool();
 }
 
-void TableRowItem::setIcon(int column, const QIcon &icon)
+void RowItem::setIcon(int column, const QIcon &icon)
 {
     setData(column,icon,DecorationRole);
 }
 
-QIcon TableRowItem::icon(int column) const
+QIcon RowItem::icon(int column) const
 {
     QVariant var = data(column,DecorationRole);
     return var.value<QIcon>();
 }
 
-bool TableRowItem::isValid(int column)
+bool RowItem::isValid(int column)
 {
     if(column >= m_columnCount || column < 0){
         return false;
@@ -279,19 +279,19 @@ bool TableRowItem::isValid(int column)
     return data(column).isValid();
 }
 
-int TableRowItem::level()
+int RowItem::level()
 {
     return m_level;
 }
 
 
-void TableRowItem::clearData()
+void RowItem::clearData()
 {
     m_colunmData.clear();
     roleMap.clear();
 }
 
-int TableRowItem::columnCount() const
+int RowItem::columnCount() const
 {
     return m_columnCount;
 }
