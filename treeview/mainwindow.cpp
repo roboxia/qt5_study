@@ -10,7 +10,7 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-#if 1
+#if 0
     QStandardItemModel* model = new QStandardItemModel(4,4,this);
 
 
@@ -21,12 +21,17 @@ MainWindow::MainWindow(QWidget *parent)
     item->setChild(0,0,item10);
     item->setChild(1,0,item11);
 
+    QStandardItem* item11_1 = new QStandardItem("11_1");
+    item11->insertRow(0,item11_1);
+
+    //item11->child(0,0)->setData(12,Qt::DisplayRole);
+
     //model->setItem(1,0,item10);
     QStandardItem* item101 = new QStandardItem("101");
     QStandardItem* item102 = new QStandardItem("102");
     item10->setChild(0,0,item101);
     item11->setChild(0,0,item101);
-
+    item11->removeRow(1);
 
     ui->treeView->setModel(model);
 
@@ -41,6 +46,17 @@ MainWindow::MainWindow(QWidget *parent)
     ui->treeView->setModel(model);
     model->insertColumns(0,2);
     model->insertRows(0,10);
+
+    model->setData( model->index(0,0),"0-0 0");
+    model->setData( model->index(0,1),"0-0 1");
+    model->setData( model->index(1,0),"0-1 0");
+
+    QModelIndex pa = model->index(0,0);
+    model->insertRow(0,pa);
+    model->setData( model->index(0,0,pa),"1-0 0");
+
+    RowItem* item = new RowItem( RowItem::fromViod(pa.internalPointer()));
+    item->setData(0,"new");
 
 
 

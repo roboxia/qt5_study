@@ -14,13 +14,11 @@ msvc {
 SOURCES += \
     generaltreemodel.cpp \
     main.cpp \
-    mainwindow.cpp \
-    rowitem.cpp
+    mainwindow.cpp
 
 HEADERS += \
     generaltreemodel.h \
-    mainwindow.h \
-    rowitem.h
+    mainwindow.h
 
 FORMS += \
     mainwindow.ui
