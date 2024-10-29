@@ -11,95 +11,71 @@ using namespace Qt;
 class GeneralTreeModel;
 
 
-
+/**
+ *1. RowItem只作为一个单纯的树状链表进行使用. 不能操作Model的相关功能.
+ *2. RowItem的数据链表操作,都需要从父类进行操作. 每一次 new 一个新的对象. 都表示一个新的根节点(无parent) 但是可以设置paent
+ *直接全部在model里面进行操作了. 就不使用这个item了.
+ */
 class RowItem
 {
 public:
-    enum UserRoles
+    enum UserData
     {
-        CheckEnableRole = UserRole + 1,
+        ItemFlagsData = UserRole + 1,
+        EnableIndexRowData, //记录Item的Display数据是否使用index的行号代替
     };
 
-    //如果存在parentItem, 自动同步 columnCount
     RowItem();
-    RowItem(RowItem *parentItem);
-    RowItem(RowItem *parentItem,int row);
+
     ~RowItem();
 
-    //同步设置所有子项. model中应该以root节点进行设置
-    void insertColumns(int column,int count = 1);
-    void removeColumns(int column,int count = 1);
 
-    //item的parent必须为nullptr, 否则跳过添加
-    void insertRows(int row,QList<RowItem*> items); //可以插入数据, 但是没法通知model. model是保护函数
-    void insertRows(int row, int count);
-    void insertRow(int row,RowItem* item);
-    void appendRows(QList<RowItem*> items);
-    void appendRow(RowItem* item);
-
-    void removeRows(int row,int count);
-    void removeRow(int row);
-
-    void setChild(int row,RowItem* item);
-
-    RowItem *takeChild(int row);
-    int takeChild(RowItem* item);
-    QList<RowItem*> takeChildren();
-
-    RowItem *child(int row);
-    QList<RowItem*> children() const;
-    RowItem *parent();
-
-
-    //只有根节点需要设置model.其他节点自动同步
-    QAbstractItemModel *model() const;
-    //返回自身的index
-    QModelIndex index(int column) const;
-    //返回子项的index
-    QModelIndex indexChild(int row,int column) const;
-
-    int row();
-    int childRow(RowItem* item) const;
-    int rowCount();
+    //自身所在parnet下的 行号
+    int row() const;
+    //子行的数量. 不嵌套
+    int rowCount() const;
     int columnCount() const;
+
+    //当前所处的层级
     int level();
 
-    //默认DisplayRole和EditRole是一样的.
+    //如果传入无效index, 返回nullptr
+    static RowItem* fromIndex(const QModelIndex &index);
+protected:
+    friend class GeneralTreeModel;
+
+    //自身及child设置columns
+    bool minsertColumns(int column,int count = 1);
+    bool mremoveColumns(int column,int count = 1);
+
+    //要求child的parent为nullptr.
+    //1. 设置child的parent = this
+    //3. 更新child的column
+    bool insertChild(int row,RowItem *child);
+    bool addChild(RowItem *child);
+    QList<RowItem*> takeChildren(int row, int count =1);
+    bool takeChild(RowItem *child);
+
+    //查询数据
     bool setData(int column, const QVariant &value, int role = DisplayRole);
     QVariant data(int column, int role = DisplayRole) const;
 
+    //通过这两个函数只能修改或者获取数据和属性, 不能修改父,或者子
+    RowItem *child(int row) const;
+    RowItem *parent() const;
 
-    //设置指定role的快捷函数.
-    void setCheckable(int column,bool checkable);
-    bool checkable(int column) const;
 
-    void setIcon(int column,const QIcon &icon);
-    QIcon icon(int column) const;
-    bool isValid(int column);
-
-    //清空自身的数据
-    void clearData();
-    //清空自身和子项的数据. 嵌套清空
-    void clearDataChild();
-
-    static RowItem* fromViod(void* ptr);
-protected:
-    //需要对root节点赋值
-    GeneralTreeModel *m_model;
-    RowItem* m_parentItem;
-    friend class GeneralTreeModel;
-
+    //变更chrild  //删除, 取出
+    bool minsertRows(int row,int count = 1); //插入操作的实际操作者
+    void mremoveRows(int row,int count = 1);
 private:
-    //该类中最好都通过 setData 和 columnData来操作数据, 以保证 roleMap 的正确性.
-    //不然需要校验 roleMap 的正确性.
-    //<roles<column>>  [roles][column]
-    QList<QVariantList> m_colunmData;
-    QMap<int,int> roleMap;
-    QList<RowItem*> m_childItem;
-
-    //记录当前层级. root节点为 -1. 0为可见的 top 层
-    int m_level;
     int m_columnCount;
+
+    //role,columnData
+    QMap<int,QVariantList> m_colunmData;
+
+    RowItem* m_parentItem;
+    QList<RowItem*> m_childItem;
 };
 
 //根节点是一个不可见节点, 用于管理所有的节点 ,和QStandardItemModel的根节点一样
@@ -136,10 +112,15 @@ public:
     Qt::ItemFlags flags(const QModelIndex &index) const override;
 
     // Add data:
+    //从 row 开始, 新增 count 行数据. 将新增行数按照正常顺序插入到原表中
+    //如果 parent 为空, 则在根节点添加
     bool insertRows(int row, int count, const QModelIndex &parent = QModelIndex()) override;
+    bool insertRows(int row, QList<RowItem*> items, const QModelIndex &parent = QModelIndex());
     bool insertColumns(int column, int count, const QModelIndex &parent = QModelIndex()) override;
 
+
     // Remove data:
+    QList<RowItem*> takeChildren(int row, int count ,const QModelIndex &parent = QModelIndex());
     bool removeRows(int row, int count, const QModelIndex &parent = QModelIndex()) override;
     bool removeColumns(int column, int count, const QModelIndex &parent = QModelIndex()) override;
 
@@ -153,9 +134,13 @@ public:
     //快速指定父列设置数据...
     RowItem *insertRow(int row,const QModelIndex &parent = QModelIndex());
     void removeRow(int row,const QModelIndex &parent = QModelIndex());
+    void removeRow(QModelIndex index);
     void appendRow(const QModelIndex &parent = QModelIndex());
 
-    RowItem *item(int row,int column,const QModelIndex &parent = QModelIndex());
+    RowItem *item(int row,const QModelIndex &parent = QModelIndex());
+
+    void clear();
+
 protected:
     friend class RowItem;
 
